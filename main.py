@@ -5,6 +5,10 @@ import os
 import logging
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from huggingface_hub import login
+import threading
+import time
+import uuid
+import redis
 
 app = FastAPI(
     title="NCOS Compliance LLM API",
@@ -63,6 +67,51 @@ except Exception as e:
     logger.error(f"Model loading failed: {e}")
     ncos_pipeline = None
 
+# --- Redis Connection ---
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")  # Set your cloud Redis URL in env
+redis_client = redis.Redis.from_url(REDIS_URL)
+
+# --- Job Queue Logic ---
+JOB_QUEUE = "ncos_job_queue"
+JOB_RESULT_PREFIX = "ncos_job_result:"
+
+# --- Model Cache ---
+model_cache = {"name": None, "pipeline": None}
+
+# --- Background Worker Thread ---
+def job_worker():
+    while True:
+        job_data = redis_client.lpop(JOB_QUEUE)
+        if job_data:
+            job = eval(job_data)  # In production, use json.loads for safety
+            job_id = job["job_id"]
+            input_text = job["input_text"]
+            parameters = job.get("parameters", {})
+            model_name = job.get("model_name", "gpt2")
+            try:
+                # Load model if needed
+                if model_cache["name"] != model_name:
+                    logger.info(f"Loading model for job: {model_name}")
+                    tokenizer = AutoTokenizer.from_pretrained(model_name)
+                    model = AutoModelForCausalLM.from_pretrained(model_name)
+                    model_cache["pipeline"] = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0)
+                    model_cache["name"] = model_name
+                pipe = model_cache["pipeline"]
+                params = parameters or {}
+                params.setdefault("max_new_tokens", 128)
+                params.setdefault("temperature", 0.7)
+                output = pipe(input_text, **params)
+                result_text = output[0]["generated_text"] if output and "generated_text" in output[0] else str(output)
+                redis_client.set(JOB_RESULT_PREFIX + job_id, result_text)
+            except Exception as e:
+                logger.error(f"Job {job_id} failed: {e}")
+                redis_client.set(JOB_RESULT_PREFIX + job_id, f"ERROR: {e}")
+        else:
+            time.sleep(1)
+
+# Start background worker thread
+threading.Thread(target=job_worker, daemon=True).start()
+
 # --- Endpoints ---
 
 @app.post("/infer", response_model=InferResponse, summary="Run model inference", description="Run LLM inference on the input text and return the result.")
@@ -109,8 +158,14 @@ def submit_job(request: QueueRequest):
     - **parameters**: Optional model parameters.
     Returns a job ID and status.
     """
-    # TODO: Integrate with Redis queue
-    job_id = "job_123"  # Placeholder
+    job_id = str(uuid.uuid4())
+    job = {
+        "job_id": job_id,
+        "input_text": request.input_text,
+        "parameters": request.parameters,
+        "model_name": os.getenv("HF_MODEL_NAME", "gpt2")  # Allow override per job in future
+    }
+    redis_client.rpush(JOB_QUEUE, str(job))
     return QueueResponse(job_id=job_id, status="queued")
 
 @app.get("/queue", response_model=QueueResponse, summary="Get job status/result", description="Get the status or result of a queued job by job_id.")
@@ -120,8 +175,14 @@ def get_job_status(job_id: str):
     - **job_id**: The job identifier.
     Returns the job status and result if available.
     """
-    # TODO: Query Redis for job status/result
-    return QueueResponse(job_id=job_id, status="pending")
+    result = redis_client.get(JOB_RESULT_PREFIX + job_id)
+    if result:
+        result_str = result.decode("utf-8")
+        if result_str.startswith("ERROR:"):
+            return QueueResponse(job_id=job_id, status="error", error=result_str)
+        return QueueResponse(job_id=job_id, status="done", result=result_str)
+    else:
+        return QueueResponse(job_id=job_id, status="pending")
 
 @app.get("/")
 def root():
