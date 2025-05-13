@@ -20,4 +20,7 @@ transformers==4.40.2
 huggingface_hub==0.23.1
 
 # For GPU inference (update if needed for CUDA compatibility)
-torch==2.2.2 
+torch==2.2.2
+
+# Pin numpy to <2 to avoid incompatibility with modules compiled against numpy 1.x
+numpy<2 

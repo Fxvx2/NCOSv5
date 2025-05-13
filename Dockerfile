@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV TRANSFORMERS_CACHE=/tmp/.cache
 
 # Set work directory
 WORKDIR /app
