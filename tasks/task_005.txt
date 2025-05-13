@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Integrate Frontend
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Update the Next.js frontend to use the new backend API. Display job status, results, and health. Handle errors.
+# Details:
+Modify frontend to make requests to /infer, /healthz, and /queue endpoints. Update UI to show job status, inference results, and backend health. Implement user-friendly error handling.
+
+# Test Strategy:
+Integration test frontend against a running backend instance. Verify UI updates and error display.

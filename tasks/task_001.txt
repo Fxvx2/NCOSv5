@@ -1,0 +1,31 @@
+# Task ID: 1
+# Title: Design API Contract
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Define endpoints for inference, health checks, and job queueing. Use FastAPI's OpenAPI for documentation.
+# Details:
+Create endpoints for /infer (POST), /healthz (GET), and /queue (POST/GET if using Redis). Specify request/response schemas and document using OpenAPI.
+
+# Test Strategy:
+Manually test endpoints with sample requests. Verify OpenAPI docs are generated correctly.
+
+# Subtasks:
+## 1. Define /infer endpoint [in-progress]
+### Dependencies: None
+### Description: Create a POST endpoint at /infer for making inference requests. Define request and response schemas.
+### Details:
+The /infer endpoint should accept a JSON payload with the required input data. It should return the inference result or an appropriate error response. Use pydantic to define the request and response models. Document the endpoint using FastAPI's OpenAPI annotations.
+
+## 2. Implement /healthz endpoint [in-progress]
+### Dependencies: None
+### Description: Create a GET endpoint at /healthz for health checks. Return a 200 OK response if the service is healthy.
+### Details:
+The /healthz endpoint should perform any necessary checks to determine if the service is healthy and able to handle requests. This can include checking database connections, verifying external service availability, etc. If all checks pass, return a 200 OK response. Use FastAPI's OpenAPI annotations to document the endpoint.
+
+## 3. Add /queue endpoint for job queueing [pending]
+### Dependencies: 1.1
+### Description: If using Redis for job queueing, create POST and GET endpoints at /queue for submitting and retrieving jobs.
+### Details:
+The POST /queue endpoint should accept a job payload and enqueue it in Redis. The GET /queue endpoint should retrieve job status and results. If not using Redis, this subtask can be skipped. Ensure proper error handling and document the endpoints using FastAPI's OpenAPI annotations.
+

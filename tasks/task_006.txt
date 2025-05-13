@@ -1,0 +1,11 @@
+# Task ID: 6
+# Title: Set Up Redis Queue
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Configure Redis for job queueing. Integrate Redis into the backend for job submission and status tracking.
+# Details:
+Provision a Redis instance. Implement a job queue using Redis lists or streams. Modify the backend to enqueue jobs on /queue POST and return status on GET. Process jobs asynchronously.
+
+# Test Strategy:
+Integration test queueing by submitting jobs and verifying processing. Validate job status updates.

@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Dockerize Backend
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create a clean, minimal Dockerfile for the FastAPI backend. Ensure proper setup of dependencies, cache, and permissions.
+# Details:
+Base image: nvidia/cuda:12.1.0-devel-ubuntu22.04. Install Python, torch, and pinned dependencies in order. Set up cache and permissions. Add a HEALTHCHECK.
+
+# Test Strategy:
+Build and run Docker image. Verify API endpoints, model loading, and health check. Test on GPU machine.

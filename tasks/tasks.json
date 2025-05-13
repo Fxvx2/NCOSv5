@@ -1,0 +1,160 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Design API Contract",
+      "description": "Define endpoints for inference, health checks, and job queueing. Use FastAPI's OpenAPI for documentation.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Create endpoints for /infer (POST), /healthz (GET), and /queue (POST/GET if using Redis). Specify request/response schemas and document using OpenAPI.",
+      "testStrategy": "Manually test endpoints with sample requests. Verify OpenAPI docs are generated correctly.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Define /infer endpoint",
+          "description": "Create a POST endpoint at /infer for making inference requests. Define request and response schemas.",
+          "dependencies": [],
+          "details": "The /infer endpoint should accept a JSON payload with the required input data. It should return the inference result or an appropriate error response. Use pydantic to define the request and response models. Document the endpoint using FastAPI's OpenAPI annotations.",
+          "status": "in-progress",
+          "parentTaskId": 1
+        },
+        {
+          "id": 2,
+          "title": "Implement /healthz endpoint",
+          "description": "Create a GET endpoint at /healthz for health checks. Return a 200 OK response if the service is healthy.",
+          "dependencies": [],
+          "details": "The /healthz endpoint should perform any necessary checks to determine if the service is healthy and able to handle requests. This can include checking database connections, verifying external service availability, etc. If all checks pass, return a 200 OK response. Use FastAPI's OpenAPI annotations to document the endpoint.",
+          "status": "in-progress",
+          "parentTaskId": 1
+        },
+        {
+          "id": 3,
+          "title": "Add /queue endpoint for job queueing",
+          "description": "If using Redis for job queueing, create POST and GET endpoints at /queue for submitting and retrieving jobs.",
+          "dependencies": [
+            1
+          ],
+          "details": "The POST /queue endpoint should accept a job payload and enqueue it in Redis. The GET /queue endpoint should retrieve job status and results. If not using Redis, this subtask can be skipped. Ensure proper error handling and document the endpoints using FastAPI's OpenAPI annotations.",
+          "status": "pending",
+          "parentTaskId": 1
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Implement FastAPI Backend",
+      "description": "Write a minimal FastAPI app that loads the model, exposes API endpoints, and handles errors and logging.",
+      "status": "pending",
+      "dependencies": [
+        1
+      ],
+      "priority": "high",
+      "details": "Create a new clean codebase. Implement model loading with error handling, the /infer and /healthz endpoints, and request/error logging. Optionally integrate Redis for queueing.",
+      "testStrategy": "Unit test critical functionality. Integration test API endpoints. Verify logging and error handling."
+    },
+    {
+      "id": 3,
+      "title": "Dockerize Backend",
+      "description": "Create a clean, minimal Dockerfile for the FastAPI backend. Ensure proper setup of dependencies, cache, and permissions.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Base image: nvidia/cuda:12.1.0-devel-ubuntu22.04. Install Python, torch, and pinned dependencies in order. Set up cache and permissions. Add a HEALTHCHECK.",
+      "testStrategy": "Build and run Docker image. Verify API endpoints, model loading, and health check. Test on GPU machine."
+    },
+    {
+      "id": 4,
+      "title": "Validate Model and Tokenizer",
+      "description": "Ensure the model and tokenizer files are valid, compatible, and ready for use in the backend.",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "medium",
+      "details": "Test loading the model and tokenizer files locally before integrating into the backend. Verify versions and checksums. Document the update process.",
+      "testStrategy": "Manually test model/tokenizer loading. Validate model outputs. Automate checks if possible."
+    },
+    {
+      "id": 5,
+      "title": "Integrate Frontend",
+      "description": "Update the Next.js frontend to use the new backend API. Display job status, results, and health. Handle errors.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Modify frontend to make requests to /infer, /healthz, and /queue endpoints. Update UI to show job status, inference results, and backend health. Implement user-friendly error handling.",
+      "testStrategy": "Integration test frontend against a running backend instance. Verify UI updates and error display."
+    },
+    {
+      "id": 6,
+      "title": "Set Up Redis Queue",
+      "description": "Configure Redis for job queueing. Integrate Redis into the backend for job submission and status tracking.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "medium",
+      "details": "Provision a Redis instance. Implement a job queue using Redis lists or streams. Modify the backend to enqueue jobs on /queue POST and return status on GET. Process jobs asynchronously.",
+      "testStrategy": "Integration test queueing by submitting jobs and verifying processing. Validate job status updates."
+    },
+    {
+      "id": 7,
+      "title": "Set Up Supabase Storage",
+      "description": "Configure Supabase for storing test cases and results. Integrate Supabase into the backend.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "low",
+      "details": "Provision a Supabase instance. Design schemas for test cases and inference results. Modify the backend to store and retrieve data from Supabase tables. Consider access control.",
+      "testStrategy": "Integration test Supabase by storing and querying test data. Verify data integrity and security."
+    },
+    {
+      "id": 8,
+      "title": "Implement Monitoring and Health Checks",
+      "description": "Add logging, error reporting, and health check endpoints to the backend. Optionally integrate Prometheus/Grafana.",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "medium",
+      "details": "Implement comprehensive logging to stdout or a logging service. Add /healthz and /readyz endpoints for liveness and readiness checks. Optionally expose Prometheus metrics and set up a Grafana dashboard.",
+      "testStrategy": "Verify health checks by running the backend and probing the endpoints. Trigger errors and validate reporting."
+    },
+    {
+      "id": 9,
+      "title": "Set Up CI/CD Pipeline",
+      "description": "Configure a CI/CD system for automated building, testing, and deployment of the backend and frontend.",
+      "status": "pending",
+      "dependencies": [
+        3,
+        5
+      ],
+      "priority": "high",
+      "details": "Use GitHub Actions or similar. Define workflows for build, test, and deploy stages. Trigger on pull requests and merges to main. Deploy backend to Hugging Face Spaces and frontend to Vercel.",
+      "testStrategy": "Manually trigger a full CI/CD run. Verify successful build, test passing, and deployment to production."
+    },
+    {
+      "id": 10,
+      "title": "Write Documentation",
+      "description": "Create comprehensive documentation for the backend API, frontend usage, and overall system architecture.",
+      "status": "pending",
+      "dependencies": [
+        1,
+        2,
+        5
+      ],
+      "priority": "high",
+      "details": "Write a README covering system overview, architecture, setup, and usage. Document the API endpoints, request/response formats, and error codes. Include examples and troubleshooting guides.",
+      "testStrategy": "Review documentation for clarity, accuracy, and completeness. Verify instructions by following them."
+    }
+  ],
+  "metadata": {
+    "projectName": "NCOS_S1 (Large Compliance LLM Pipeline)",
+    "totalTasks": 10,
+    "sourceFile": "scripts/prd.md",
+    "generatedAt": "2023-06-21"
+  }
+}

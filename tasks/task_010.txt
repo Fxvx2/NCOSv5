@@ -1,0 +1,11 @@
+# Task ID: 10
+# Title: Write Documentation
+# Status: pending
+# Dependencies: 1, 2, 5
+# Priority: high
+# Description: Create comprehensive documentation for the backend API, frontend usage, and overall system architecture.
+# Details:
+Write a README covering system overview, architecture, setup, and usage. Document the API endpoints, request/response formats, and error codes. Include examples and troubleshooting guides.
+
+# Test Strategy:
+Review documentation for clarity, accuracy, and completeness. Verify instructions by following them.

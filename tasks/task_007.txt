@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Set Up Supabase Storage
+# Status: pending
+# Dependencies: 2
+# Priority: low
+# Description: Configure Supabase for storing test cases and results. Integrate Supabase into the backend.
+# Details:
+Provision a Supabase instance. Design schemas for test cases and inference results. Modify the backend to store and retrieve data from Supabase tables. Consider access control.
+
+# Test Strategy:
+Integration test Supabase by storing and querying test data. Verify data integrity and security.

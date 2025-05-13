@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: Set Up CI/CD Pipeline
+# Status: pending
+# Dependencies: 3, 5
+# Priority: high
+# Description: Configure a CI/CD system for automated building, testing, and deployment of the backend and frontend.
+# Details:
+Use GitHub Actions or similar. Define workflows for build, test, and deploy stages. Trigger on pull requests and merges to main. Deploy backend to Hugging Face Spaces and frontend to Vercel.
+
+# Test Strategy:
+Manually trigger a full CI/CD run. Verify successful build, test passing, and deployment to production.

@@ -1,0 +1,14 @@
+# FastAPI web framework
+fastapi
+
+# ASGI server for running FastAPI
+uvicorn[standard]
+
+# Supabase Python client
+supabase
+
+# For loading environment variables from .env
+python-dotenv
+
+# Data validation and settings management
+pydantic 
