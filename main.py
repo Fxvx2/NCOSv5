@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, Any
 import os
@@ -130,6 +130,13 @@ def root():
         "docs": "/docs",
         "health": "/healthz"
     }
+
+# Add middleware to log every incoming request path and method
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    logger.info(f"Incoming request: {request.method} {request.url.path}")
+    response = await call_next(request)
+    return response
 
 # --- End of API contract skeleton ---
 
