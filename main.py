@@ -123,6 +123,14 @@ def get_job_status(job_id: str):
     # TODO: Query Redis for job status/result
     return QueueResponse(job_id=job_id, status="pending")
 
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to the NCOS_S3 FastAPI backend!",
+        "docs": "/docs",
+        "health": "/healthz"
+    }
+
 # --- End of API contract skeleton ---
 
 # FastAPI will auto-generate OpenAPI docs at /docs and /openapi.json
