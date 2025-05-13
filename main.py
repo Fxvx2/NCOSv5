@@ -36,7 +36,7 @@ class QueueResponse(BaseModel):
 # --- Model Loading (Cloud-Ready) ---
 
 # Read model name and token from environment variables for security
-MODEL_NAME = os.getenv("HF_MODEL_NAME", "ACATECH/ncos")  # Default to ACATECH/ncos
+MODEL_NAME = os.getenv("HF_MODEL_NAME", "gpt2")  # Use gpt2 for testing; switch back to ACATECH/ncos after
 HF_TOKEN = os.getenv("HF_TOKEN")  # Should be set in Hugging Face Space secrets
 
 # Set up logging
