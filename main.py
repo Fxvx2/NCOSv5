@@ -9,6 +9,7 @@ import threading
 import time
 import uuid
 import redis
+from supabase import create_client, Client
 
 app = FastAPI(
     title="NCOS Compliance LLM API",
@@ -78,6 +79,19 @@ JOB_RESULT_PREFIX = "ncos_job_result:"
 # --- Model Cache ---
 model_cache = {"name": None, "pipeline": None}
 
+# --- Supabase Connection ---
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        logger.info("Connected to Supabase.")
+    except Exception as e:
+        logger.error(f"Failed to connect to Supabase: {e}")
+else:
+    logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+
 # --- Background Worker Thread ---
 def job_worker():
     while True:
@@ -103,6 +117,20 @@ def job_worker():
                 output = pipe(input_text, **params)
                 result_text = output[0]["generated_text"] if output and "generated_text" in output[0] else str(output)
                 redis_client.set(JOB_RESULT_PREFIX + job_id, result_text)
+                # --- Store result in Supabase ---
+                if supabase:
+                    try:
+                        data = {
+                            "job_id": job_id,
+                            "input_text": input_text,
+                            "parameters": str(parameters),
+                            "model_name": model_name,
+                            "result": result_text
+                        }
+                        supabase.table("inference_results").insert(data).execute()
+                        logger.info(f"Stored job {job_id} result in Supabase.")
+                    except Exception as e:
+                        logger.error(f"Failed to store job {job_id} in Supabase: {e}")
             except Exception as e:
                 logger.error(f"Job {job_id} failed: {e}")
                 redis_client.set(JOB_RESULT_PREFIX + job_id, f"ERROR: {e}")

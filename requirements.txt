@@ -5,7 +5,7 @@ fastapi
 uvicorn[standard]
 
 # Supabase Python client
-supabase
+supabase==2.3.5
 
 # For loading environment variables from .env
 python-dotenv
