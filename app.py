@@ -70,7 +70,8 @@ except Exception as e:
     ncos_pipeline = None
 
 # --- Redis Connection ---
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")  # Set your cloud Redis URL in env
+# Use the provided Redis Cloud endpoint as the default for testing
+REDIS_URL = os.getenv("REDIS_URL", "redis://:password@redis-19567.c300.eu-central-1-1.ec2.redns.redis-cloud.com:19567/0")  # Set your Redis Cloud URL in env
 redis_client = redis.Redis.from_url(REDIS_URL)
 
 # --- Job Queue Logic ---
