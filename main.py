@@ -85,6 +85,7 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase: Client = None
 if SUPABASE_URL and SUPABASE_KEY:
     try:
+        # Do not use 'proxy' argument; supabase-py does not support it as of v2.x
         supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
         logger.info("Connected to Supabase.")
     except Exception as e:
