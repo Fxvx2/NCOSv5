@@ -33,6 +33,7 @@ export default function UseCasesPage() {
         .from("test_cases")
         .select("*")
         .order("updated_at", { ascending: false });
+      console.log("Supabase data:", data, "Error:", error); // Debug log
       if (error) setError(error.message);
       else setUseCases(data || []);
       setLoading(false);
