@@ -9,7 +9,7 @@ import threading
 import time
 import uuid
 import redis
-from supabase import create_client, Client
+import httpx
 
 app = FastAPI(
     title="NCOS Compliance LLM API",
@@ -81,19 +81,120 @@ JOB_RESULT_PREFIX = "ncos_job_result:"
 # --- Model Cache ---
 model_cache = {"name": None, "pipeline": None}
 
-# --- Supabase Connection ---
+# --- Supabase REST API Helper Functions ---
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase: Client = None
-if SUPABASE_URL and SUPABASE_KEY:
+
+def insert_inference_result(data: dict) -> bool:
+    """
+    Insert a row into the inference_results table using Supabase REST API.
+    Returns True if successful, False otherwise.
+    """
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+        return False
+    url = f"{SUPABASE_URL}/rest/v1/inference_results"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
     try:
-        # Do not use 'proxy' argument; supabase-py does not support it as of v2.x
-        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-        logger.info("Connected to Supabase.")
+        response = httpx.post(url, json=data, headers=headers)
+        if response.status_code == 201:
+            logger.info(f"Stored job {data.get('job_id')} result in Supabase via REST API.")
+            return True
+        else:
+            logger.error(f"Failed to store job {data.get('job_id')} in Supabase: {response.status_code} {response.text}")
+            return False
     except Exception as e:
-        logger.error(f"Failed to connect to Supabase: {e}")
-else:
-    logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+        logger.error(f"Exception during Supabase REST API call: {e}")
+        return False
+
+def select_inference_results(filters: dict = None) -> list:
+    """
+    Select rows from the inference_results table using Supabase REST API.
+    filters: dict of query params (e.g., {"job_id": "eq.test123"})
+    Returns a list of results or an empty list.
+    """
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+        return []
+    url = f"{SUPABASE_URL}/rest/v1/inference_results"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    params = {"select": "*"}
+    if filters:
+        params.update(filters)
+    try:
+        response = httpx.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            logger.info(f"Selected results from Supabase via REST API.")
+            return response.json()
+        else:
+            logger.error(f"Failed to select from Supabase: {response.status_code} {response.text}")
+            return []
+    except Exception as e:
+        logger.error(f"Exception during Supabase REST API select: {e}")
+        return []
+
+def update_inference_result(job_id: str, update_data: dict) -> bool:
+    """
+    Update a row in the inference_results table using Supabase REST API.
+    job_id: the job_id to match
+    update_data: dict of fields to update
+    Returns True if successful, False otherwise.
+    """
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+        return False
+    url = f"{SUPABASE_URL}/rest/v1/inference_results"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json"
+    }
+    params = {"job_id": f"eq.{job_id}"}
+    try:
+        response = httpx.patch(url, json=update_data, headers=headers, params=params)
+        if response.status_code in (200, 204):
+            logger.info(f"Updated job {job_id} in Supabase via REST API.")
+            return True
+        else:
+            logger.error(f"Failed to update job {job_id} in Supabase: {response.status_code} {response.text}")
+            return False
+    except Exception as e:
+        logger.error(f"Exception during Supabase REST API update: {e}")
+        return False
+
+def delete_inference_result(job_id: str) -> bool:
+    """
+    Delete a row from the inference_results table using Supabase REST API.
+    job_id: the job_id to match
+    Returns True if successful, False otherwise.
+    """
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        logger.warning("Supabase credentials not set. Skipping Supabase integration.")
+        return False
+    url = f"{SUPABASE_URL}/rest/v1/inference_results"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    }
+    params = {"job_id": f"eq.{job_id}"}
+    try:
+        response = httpx.delete(url, headers=headers, params=params)
+        if response.status_code in (200, 204):
+            logger.info(f"Deleted job {job_id} from Supabase via REST API.")
+            return True
+        else:
+            logger.error(f"Failed to delete job {job_id} from Supabase: {response.status_code} {response.text}")
+            return False
+    except Exception as e:
+        logger.error(f"Exception during Supabase REST API delete: {e}")
+        return False
 
 # --- Background Worker Thread ---
 def job_worker():
@@ -121,19 +222,15 @@ def job_worker():
                 result_text = output[0]["generated_text"] if output and "generated_text" in output[0] else str(output)
                 redis_client.set(JOB_RESULT_PREFIX + job_id, result_text)
                 # --- Store result in Supabase ---
-                if supabase:
-                    try:
-                        data = {
-                            "job_id": job_id,
-                            "input_text": input_text,
-                            "parameters": str(parameters),
-                            "model_name": model_name,
-                            "result": result_text
-                        }
-                        supabase.table("inference_results").insert(data).execute()
-                        logger.info(f"Stored job {job_id} result in Supabase.")
-                    except Exception as e:
-                        logger.error(f"Failed to store job {job_id} in Supabase: {e}")
+                if SUPABASE_URL and SUPABASE_KEY:
+                    data = {
+                        "job_id": job_id,
+                        "input_text": input_text,
+                        "parameters": str(parameters),
+                        "model_name": model_name,
+                        "result": result_text
+                    }
+                    insert_inference_result(data)
             except Exception as e:
                 logger.error(f"Job {job_id} failed: {e}")
                 redis_client.set(JOB_RESULT_PREFIX + job_id, f"ERROR: {e}")
