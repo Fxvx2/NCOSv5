@@ -6,6 +6,8 @@ uvicorn[standard]
 
 # Supabase Python client
 supabase==2.3.5
+gotrue==2.9.1
+postgrest==0.15.1
 
 # For loading environment variables from .env
 python-dotenv

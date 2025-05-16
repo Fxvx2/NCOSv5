@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python dependencies
 COPY requirements.txt .
-# Uninstall any old/conflicting supabase dependencies
+# Force rebuild for clean supabase install (added 2025-05-16)
 RUN pip uninstall -y supabase postgrest-py gotrue || true
 # Force rebuild for clean supabase install
 RUN pip install --upgrade pip
