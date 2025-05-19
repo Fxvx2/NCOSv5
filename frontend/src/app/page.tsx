@@ -2,10 +2,10 @@ export default function Home() {
   return (
     <div>
       {/* Quick Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <button className="px-6 py-3 rounded-lg bg-success text-white font-medium text-lg hover:bg-green-700 transition">Run New Test</button>
-        <button className="px-6 py-3 rounded-lg bg-accent text-white font-medium text-lg hover:bg-blue-800 transition">Add Use Case</button>
-        <button className="px-6 py-3 rounded-lg bg-primary text-white font-medium text-lg hover:bg-indigo-900 transition">View Results</button>
+      <div>
+        <a href="#" style={{ marginRight: '1em' }}>Run New Test</a>
+        <a href="/use-cases" style={{ marginRight: '1em' }}>Add Use Case</a>
+        <a href="/results">View Results</a>
       </div>
       {/* Use Case Table Placeholder */}
       <div className="bg-white rounded-xl shadow border-2 border-neutral w-full max-w-5xl mx-auto">
