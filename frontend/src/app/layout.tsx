@@ -28,10 +28,10 @@ export default function RootLayout({
         </header>
         {/* Navigation Bar */}
         <nav>
-          <a href="/">Dashboard</a> |
-          <a href="/use-cases">Use Cases</a> |
-          <a href="/results">Results</a> |
-          <a href="/docs">Docs/Help</a>
+          <Link href="/">Dashboard</Link> |{' '}
+          <Link href="/use-cases">Use Cases</Link> |{' '}
+          <Link href="/results">View Results</Link> |{' '}
+          <Link href="/docs">Docs/Help</Link>
         </nav>
         <main className="px-8 py-8 min-h-[calc(100vh-8rem)] bg-background">
           {children}
