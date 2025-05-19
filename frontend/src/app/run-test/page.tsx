@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useRouter } from "next/navigation";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://ncos-s4-vx2-3y.hf.space/infer";
+const BACKEND_HEALTH_URL = "https://ncos-s4-vx2-3y.hf.space/healthz";
 
 interface UseCase {
   id: string;
@@ -25,9 +25,10 @@ export default function RunTestPage() {
       .select("id, regulation, scenario, question")
       .order("updated_at", { ascending: false })
       .then(({ data }) => setUseCases(data || []));
-    // Check backend health
-    fetch(BACKEND_URL, { method: "OPTIONS" })
-      .then(res => setBackendOnline(res.ok))
+    // Check backend health using /healthz
+    fetch(BACKEND_HEALTH_URL)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => setBackendOnline(data?.status === "ok"))
       .catch(() => setBackendOnline(false));
   }, []);
 
