@@ -27,11 +27,11 @@ export default function RootLayout({
           </div>
         </header>
         {/* Navigation Bar */}
-        <nav className="w-full h-12 flex items-center px-8 bg-accent text-white space-x-8">
-          <Link href="/" className="text-lg font-medium hover:underline">Dashboard</Link>
-          <Link href="/use-cases" className="text-lg font-medium hover:underline">Use Cases</Link>
-          <Link href="/results" className="text-lg font-medium hover:underline">Results</Link>
-          <Link href="/docs" className="text-lg font-medium hover:underline">Docs/Help</Link>
+        <nav>
+          <a href="/">Dashboard</a> |
+          <a href="/use-cases">Use Cases</a> |
+          <a href="/results">Results</a> |
+          <a href="/docs">Docs/Help</a>
         </nav>
         <main className="px-8 py-8 min-h-[calc(100vh-8rem)] bg-background">
           {children}
